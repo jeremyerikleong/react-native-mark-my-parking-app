@@ -1,6 +1,6 @@
 import { CameraType, CameraView, useCameraPermissions } from 'expo-camera';
 import { useState } from 'react';
-import { Button, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Button, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { COLORS, SIZES } from '@/constants/theme';
@@ -32,29 +32,40 @@ export default function Index() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.cameraContainer}>
-        <CameraView style={styles.camera} facing={facing} />
-      </View>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.container}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
+      >
+        <SafeAreaView style={styles.innerContainer}>
+          <View style={styles.cameraContainer}>
+            <CameraView style={styles.camera} facing={facing} />
+          </View>
 
-      <TextInput
-        multiline
-        style={styles.input}
-        onChangeText={setNotes}
-        value={notes}
-        placeholder='Add notes for your parking...'
-        placeholderTextColor={COLORS.placeholderText}
-      />
+          <TextInput
+            multiline
+            style={styles.input}
+            onChangeText={setNotes}
+            value={notes}
+            placeholder='Add notes for your parking...'
+            placeholderTextColor={COLORS.placeholderText}
+          />
 
-      <TouchableOpacity style={styles.btnFlip} onPress={toggleCameraFacing}>
-        <Text>Flip Camera</Text>
-      </TouchableOpacity>
-    </SafeAreaView>
+          <TouchableOpacity style={styles.btnFlip} onPress={toggleCameraFacing}>
+            <Text>Flip Camera</Text>
+          </TouchableOpacity>
+        </SafeAreaView>
+      </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  innerContainer: {
     flex: 1,
     alignItems: "center",
     paddingVertical: SIZES.medium,
