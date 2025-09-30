@@ -6,11 +6,15 @@
       "@/*": [
         "./*"
       ]
-    }
+    },
+    "jsx": "react-jsx",
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
+    "**/*.js",
+    "**/*.jsx",
+    "env.d.ts",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
   ]
