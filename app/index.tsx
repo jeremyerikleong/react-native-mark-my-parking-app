@@ -1,7 +1,9 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CameraType, CameraView, useCameraPermissions } from 'expo-camera';
-import { useState } from 'react';
-import { Button, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { Button, Image, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import { COLORS, SIZES } from '@/constants/theme';
 
@@ -9,6 +11,10 @@ export default function Index() {
   const [facing, setFacing] = useState<CameraType>('back');
   const [permission, setPermission] = useCameraPermissions();
   const [notes, setNotes] = useState('');
+  const [photo, setPhoto] = useState<string>('');
+  const cameraRef = useRef<CameraView>(null);
+  const size = 30;
+  const imageCompression = 0.7;
 
   if (!permission) {
     return (
@@ -31,6 +37,26 @@ export default function Index() {
     setFacing(current => (current === 'back' ? 'front' : 'back'));
   }
 
+  async function takePhoto() {
+    if (cameraRef.current) {
+      try {
+        const result = await cameraRef.current.takePictureAsync({
+          quality: imageCompression,
+          base64: true,
+        });
+        setPhoto(result.uri);
+        await AsyncStorage.setItem('photo', result.uri);
+      } catch (err) {
+        console.error('Capture error:', err);
+      }
+    }
+  }
+
+  async function removePhoto() {
+    setPhoto('');
+    await AsyncStorage.removeItem('photo');
+  }
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <KeyboardAvoidingView
@@ -40,7 +66,24 @@ export default function Index() {
       >
         <SafeAreaView style={styles.innerContainer}>
           <View style={styles.cameraContainer}>
-            <CameraView style={styles.camera} facing={facing} />
+            {photo ? (<Image source={{ uri: photo }} style={styles.camera} resizeMode="cover" />)
+              : (<CameraView style={styles.camera} facing={facing} ref={cameraRef} />)}
+
+            {photo !== '' ? (<View style={[styles.btnContainer, styles.btnDeleteContainer]}>
+              <TouchableOpacity style={styles.btnCapture} onPress={removePhoto}>
+                <Icon name="close" size={size} color={COLORS.secondary} />
+              </TouchableOpacity>
+            </View>) : null}
+
+            {!photo ? (<View style={[styles.btnContainer, styles.btnCaptureContainer]}>
+              <TouchableOpacity style={styles.btnCapture} onPress={takePhoto}>
+                <Icon name="camera" size={size} color={COLORS.secondary} />
+              </TouchableOpacity>
+            </View>) : null}
+
+            {!photo ? (<TouchableOpacity style={styles.btnFlip} onPress={toggleCameraFacing}>
+              <Icon name="camera-flip" size={size} color={COLORS.secondary} />
+            </TouchableOpacity>) : null}
           </View>
 
           <TextInput
@@ -51,10 +94,6 @@ export default function Index() {
             placeholder='Add notes for your parking...'
             placeholderTextColor={COLORS.placeholderText}
           />
-
-          <TouchableOpacity style={styles.btnFlip} onPress={toggleCameraFacing}>
-            <Text>Flip Camera</Text>
-          </TouchableOpacity>
         </SafeAreaView>
       </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
@@ -78,12 +117,18 @@ const styles = StyleSheet.create({
   },
   cameraContainer: {
     width: '100%',
-    height: '60%',
+    height: '70%',
     borderRadius: SIZES.small,
     overflow: 'hidden',
+    position: 'relative',
   },
   camera: {
     flex: 1,
+  },
+  btnFlip: {
+    position: 'absolute',
+    right: SIZES.medium,
+    bottom: SIZES.medium,
   },
   input: {
     width: '100%',
@@ -95,7 +140,27 @@ const styles = StyleSheet.create({
     padding: SIZES.medium,
     color: COLORS.defaultText,
   },
-  btnFlip: {
-    marginTop: SIZES.medium,
+  btnContainer: {
+    position: 'absolute',
+    padding: SIZES.xSmall,
+    alignSelf: 'center',
+    borderWidth: 2,
+    borderColor: COLORS.primary,
+    borderRadius: 40,
+    backgroundColor: COLORS.primary,
+  },
+  btnCaptureContainer: {
+    bottom: SIZES.medium,
+  },
+  btnCapture: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  btnDeleteContainer: {
+    top: SIZES.medium,
+  },
+  btnDelete: {
+    justifyContent: 'center',
+    alignItems: 'center',
   }
 });
