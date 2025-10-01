@@ -13,7 +13,7 @@ export default function Index() {
   const [notes, setNotes] = useState('');
   const [photo, setPhoto] = useState<string>('');
   const cameraRef = useRef<CameraView>(null);
-  const size = 30;
+  const size = 24;
   const imageCompression = 0.7;
 
   const parkingDataKey = 'parkingData';
@@ -188,18 +188,20 @@ const styles = StyleSheet.create({
     marginTop: SIZES.medium,
     padding: SIZES.medium,
     color: COLORS.defaultText,
+    textAlignVertical: 'top',
+    textAlign: 'left',
   },
   btnContainer: {
     position: 'absolute',
-    padding: SIZES.xSmall,
+    padding: SIZES.small,
     alignSelf: 'center',
     borderWidth: 2,
-    borderColor: COLORS.primary,
     borderRadius: 40,
-    backgroundColor: COLORS.primary,
   },
   btnCaptureContainer: {
     bottom: SIZES.medium,
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
   btnCapture: {
     justifyContent: 'center',
@@ -207,6 +209,8 @@ const styles = StyleSheet.create({
   },
   btnDeleteContainer: {
     top: SIZES.medium,
+    backgroundColor: COLORS.danger,
+    borderColor: COLORS.danger,
   },
   btnDelete: {
     justifyContent: 'center',
