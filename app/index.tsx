@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CameraType, CameraView, useCameraPermissions } from 'expo-camera';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button, Image, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -15,6 +15,33 @@ export default function Index() {
   const cameraRef = useRef<CameraView>(null);
   const size = 30;
   const imageCompression = 0.7;
+
+  const parkingDataKey = 'parkingData';
+  const expiresIn = 24 //hours
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const result = await AsyncStorage.getItem(parkingDataKey);
+
+        if (result) {
+          const data = JSON.parse(result);
+          const currentTimeStamp = Date.now();
+
+          if (currentTimeStamp - currentTimeStamp < expiresIn * 60 * 60 * 1000) {
+            setPhoto(data.photo || '');
+            setNotes(data.notes || '');
+          } else {
+            await AsyncStorage.removeItem(parkingDataKey);
+          }
+        }
+      } catch (err) {
+        console.error('Error loading saved data', err);
+      }
+    }
+
+    fetchData();
+  }, []);
 
   if (!permission) {
     return (
@@ -45,7 +72,13 @@ export default function Index() {
           base64: true,
         });
         setPhoto(result.uri);
-        await AsyncStorage.setItem('photo', result.uri);
+
+        const storedParkingData = {
+          photo: result.uri,
+          notes,
+          timestamp: Date.now(),
+        }
+        await AsyncStorage.setItem(parkingDataKey, JSON.stringify(storedParkingData));
       } catch (err) {
         console.error('Capture error:', err);
       }
@@ -54,7 +87,23 @@ export default function Index() {
 
   async function removePhoto() {
     setPhoto('');
-    await AsyncStorage.removeItem('photo');
+    setNotes('');
+    await AsyncStorage.removeItem(parkingDataKey);
+  }
+
+  async function addNote(text: string) {
+    setNotes(text);
+
+    try {
+      const storedParkingData = {
+        photo,
+        notes: text,
+        timestamp: Date.now(),
+      };
+      await AsyncStorage.setItem(parkingDataKey, JSON.stringify(storedParkingData));
+    } catch (err) {
+      console.error('Save notes error', err);
+    }
   }
 
   return (
@@ -89,7 +138,7 @@ export default function Index() {
           <TextInput
             multiline
             style={styles.input}
-            onChangeText={setNotes}
+            onChangeText={addNote}
             value={notes}
             placeholder='Add notes for your parking...'
             placeholderTextColor={COLORS.placeholderText}
