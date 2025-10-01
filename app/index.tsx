@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CameraType, CameraView, useCameraPermissions } from 'expo-camera';
 import { useEffect, useRef, useState } from 'react';
-import { Button, Image, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { Alert, Button, Image, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -106,6 +106,26 @@ export default function Index() {
     }
   }
 
+  function showAlert() {
+    Alert.alert(
+      'Are you sure?',
+      'Delete your image and note? This action cannot be undone.',
+      [
+        {
+          text: 'Cancel',
+          onPress: () => console.log('cancel alert'),
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          onPress: () => removePhoto(),
+          style: 'destructive',
+        }
+      ],
+      { cancelable: true }
+    )
+  }
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <KeyboardAvoidingView
@@ -119,7 +139,7 @@ export default function Index() {
               : (<CameraView style={styles.camera} facing={facing} ref={cameraRef} />)}
 
             {photo !== '' ? (<View style={[styles.btnContainer, styles.btnDeleteContainer]}>
-              <TouchableOpacity style={styles.btnCapture} onPress={removePhoto}>
+              <TouchableOpacity style={styles.btnCapture} onPress={showAlert}>
                 <Icon name="close" size={size} color={COLORS.secondary} />
               </TouchableOpacity>
             </View>) : null}
