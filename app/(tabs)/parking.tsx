@@ -118,7 +118,6 @@ export default function Index() {
       [
         {
           text: 'Cancel',
-          onPress: () => console.log('cancel alert'),
           style: 'cancel',
         },
         {
@@ -143,17 +142,22 @@ export default function Index() {
             {photo ? (<Image source={{ uri: photo }} style={styles.camera} resizeMode="cover" />)
               : (<CameraView style={styles.camera} facing={facing} ref={cameraRef} />)}
 
-            {photo !== '' ? (<View style={[styles.btnContainer, styles.btnDeleteContainer]}>
-              <TouchableOpacity style={styles.btnCapture} onPress={showAlert}>
-                <Icon name="close" size={size} color={COLORS.secondary} />
-              </TouchableOpacity>
-            </View>) : null}
+            {photo !== '' ?
+              (<TouchableOpacity
+                style={[styles.btnContainer, styles.btnDeleteContainer]}
+                onPress={showAlert}>
+                <View style={styles.btnCapture}>
+                  <Icon name="close" size={size} color={COLORS.secondary} />
+                </View>
+              </TouchableOpacity>) : null}
 
-            {!photo ? (<View style={[styles.btnContainer, styles.btnCaptureContainer]}>
-              <TouchableOpacity style={styles.btnCapture} onPress={takePhoto}>
+            {!photo ? (<TouchableOpacity
+              style={[styles.btnContainer, styles.btnCaptureContainer]}
+              onPress={takePhoto}>
+              <View style={styles.btnCapture}>
                 <Icon name="camera" size={size} color={COLORS.secondary} />
-              </TouchableOpacity>
-            </View>) : null}
+              </View>
+            </TouchableOpacity>) : null}
 
             {!photo ? (<TouchableOpacity style={styles.btnFlip} onPress={toggleCameraFacing}>
               <Icon name="camera-flip" size={size} color={COLORS.secondary} />
