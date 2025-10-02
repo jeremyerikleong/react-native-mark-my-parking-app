@@ -135,7 +135,6 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.primary,
         padding: SIZES.medium,
         borderRadius: SIZES.small,
-        marginTop: SIZES.medium,
     },
     message: {
         color: COLORS.secondary,

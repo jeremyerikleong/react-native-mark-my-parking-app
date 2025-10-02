@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CameraType, CameraView, useCameraPermissions } from 'expo-camera';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Button, Image, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { Alert, Image, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -50,17 +50,19 @@ export default function Index() {
 
   if (!permission) {
     return (
-      <View style={styles.container}>
+      <View style={styles.permissionContainer}>
         <Text style={styles.message}>Camera permission is still loading</Text>
       </View>
-    )
+    );
   }
 
   if (!permission.granted) {
     return (
-      <View style={styles.container}>
+      <View style={styles.permissionContainer}>
         <Text style={styles.message}>We need your permission to show the camera</Text>
-        <Button onPress={setPermission} title="grant permission" />
+        <TouchableOpacity onPress={() => requestingForCameraPermission()} style={styles.btnGrant}>
+          <Text style={styles.btnGrantText}>Grant Permission</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -158,6 +160,21 @@ export default function Index() {
       ],
       { cancelable: true }
     )
+  }
+
+  function requestingForCameraPermission() {
+    Alert.alert(
+      '"App" would like to access your camera',
+      'This allows you to take and share parking photos',
+      [
+        {
+          text: "Don't Allow",
+        },
+        {
+          text: 'Allow',
+          onPress: async () => await setPermission()
+        }
+      ])
   }
 
   return (
@@ -306,5 +323,19 @@ const styles = StyleSheet.create({
   btnDelete: {
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  permissionContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    textAlign: 'center',
+  },
+  btnGrant: {
+    backgroundColor: COLORS.primary,
+    padding: SIZES.medium,
+    borderRadius: SIZES.small,
+  },
+  btnGrantText: {
+    color: COLORS.secondary,
   }
 });
