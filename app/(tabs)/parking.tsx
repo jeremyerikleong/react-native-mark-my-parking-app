@@ -9,6 +9,8 @@ import { COLORS, SIZES } from '@/constants/theme';
 
 export default function Index() {
   const [facing, setFacing] = useState<CameraType>('back');
+  const [flashMode, setFlashMode] = useState<'off' | 'on' | 'auto'>('off');
+  const [flashModeIndicator, setFlashModeIndicator] = useState<string>('');
   const [permission, setPermission] = useCameraPermissions();
   const [notes, setNotes] = useState('');
   const [photo, setPhoto] = useState<string>('');
@@ -16,6 +18,7 @@ export default function Index() {
   const cameraRef = useRef<CameraView>(null);
   const size = 24;
   const imageCompression = 0.7;
+  const timerRef = useRef<number | null>(null);
 
   const parkingDataKey = 'parkingData';
   const expiresIn = 24 //hours
@@ -64,6 +67,33 @@ export default function Index() {
 
   function toggleCameraFacing() {
     setFacing(current => (current === 'back' ? 'front' : 'back'));
+  }
+
+  function toggleFlashMode() {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+
+    setFlashMode(prev => {
+      switch (prev) {
+        case 'off':
+          setFlashModeIndicator('flash on');
+          return 'on';
+        case 'on':
+          setFlashModeIndicator('auto flash');
+          return 'auto';
+        case 'auto':
+          setFlashModeIndicator('flash off');
+          return 'off';
+        default:
+          setFlashModeIndicator('flash off');
+          return 'off';
+      }
+    });
+
+    timerRef.current = setTimeout(() => {
+      setFlashModeIndicator('');
+    }, 1000);
   }
 
   async function takePhoto() {
@@ -140,7 +170,7 @@ export default function Index() {
         <SafeAreaView style={styles.innerContainer}>
           <View style={styles.cameraContainer}>
             {photo ? (<Image source={{ uri: photo }} style={styles.camera} resizeMode="cover" />)
-              : (<CameraView style={styles.camera} facing={facing} ref={cameraRef} />)}
+              : (<CameraView style={styles.camera} facing={facing} flash={flashMode} ref={cameraRef} />)}
 
             {photo !== '' ?
               (<TouchableOpacity
@@ -150,6 +180,18 @@ export default function Index() {
                   <Icon name="close" size={size} color={COLORS.secondary} />
                 </View>
               </TouchableOpacity>) : null}
+
+            {!photo && flashModeIndicator !== '' ? (<View style={styles.flashIndicatorContainer}>
+              <Text style={styles.flashIndicatorText}>{flashModeIndicator}</Text>
+            </View>) : null}
+
+            {!photo ? (<TouchableOpacity style={styles.btnFlash} onPress={toggleFlashMode}>
+              <Icon
+                name={flashMode === "off" ? "flash-off" : flashMode === "on" ? "flash" : flashMode === "auto" ? "flash-auto" : "flash-off"}
+                size={size}
+                color={COLORS.secondary}
+              />
+            </TouchableOpacity>) : null}
 
             {!photo ? (<TouchableOpacity
               style={[styles.btnContainer, styles.btnCaptureContainer]}
@@ -207,6 +249,26 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: SIZES.medium,
     bottom: SIZES.medium,
+  },
+  btnFlash: {
+    position: 'absolute',
+    left: SIZES.medium,
+    bottom: SIZES.medium,
+  },
+  flashIndicatorContainer: {
+    position: 'absolute',
+    alignSelf: 'center',
+    top: SIZES.medium,
+    width: 100,
+    backgroundColor: COLORS.warning,
+    paddingVertical: SIZES.xSmall / 2,
+    paddingHorizontal: SIZES.xSmall,
+    borderRadius: SIZES.xSmall / 2,
+  },
+  flashIndicatorText: {
+    textAlign: 'center',
+    color: COLORS.secondary,
+    textTransform: 'capitalize',
   },
   input: {
     width: '100%',
