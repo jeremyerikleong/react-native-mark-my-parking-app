@@ -12,6 +12,7 @@ export default function Index() {
   const [permission, setPermission] = useCameraPermissions();
   const [notes, setNotes] = useState('');
   const [photo, setPhoto] = useState<string>('');
+  const [qrValue, setQrValue] = useState<string>('');
   const cameraRef = useRef<CameraView>(null);
   const size = 24;
   const imageCompression = 0.7;
@@ -31,6 +32,7 @@ export default function Index() {
           if (currentTimeStamp - currentTimeStamp < expiresIn * 60 * 60 * 1000) {
             setPhoto(data.photo || '');
             setNotes(data.notes || '');
+            setQrValue(JSON.stringify(data));
           } else {
             await AsyncStorage.removeItem(parkingDataKey);
           }
@@ -79,6 +81,7 @@ export default function Index() {
           timestamp: Date.now(),
         }
         await AsyncStorage.setItem(parkingDataKey, JSON.stringify(storedParkingData));
+        setQrValue(JSON.stringify(storedParkingData));
       } catch (err) {
         console.error('Capture error:', err);
       }
@@ -88,6 +91,7 @@ export default function Index() {
   async function removePhoto() {
     setPhoto('');
     setNotes('');
+    setQrValue('');
     await AsyncStorage.removeItem(parkingDataKey);
   }
 
@@ -101,6 +105,7 @@ export default function Index() {
         timestamp: Date.now(),
       };
       await AsyncStorage.setItem(parkingDataKey, JSON.stringify(storedParkingData));
+      setQrValue(JSON.stringify(storedParkingData));
     } catch (err) {
       console.error('Save notes error', err);
     }
