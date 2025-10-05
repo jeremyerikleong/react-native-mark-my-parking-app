@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useIsFocused } from "@react-navigation/native";
 import { Link } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import QRCode from "react-native-qrcode-svg";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -34,6 +34,10 @@ export default function Home() {
             loadData();
         }
     }, [isFocused]);
+
+    function shareContact() {
+        console.log('test');
+    }
 
     return (
         <SafeAreaView style={styles.container}>
@@ -105,6 +109,25 @@ export default function Home() {
                     </View>
                 </Pressable>
             )}
+
+            {qrValue !== '' ?
+                <Pressable style={styles.qrScannerContainer} onPress={() => shareContact()}>
+                    <Text>Share Contact</Text>
+                    <View style={styles.qrScannerInnerContainer}>
+                        <Image style={styles.qrScannerIcon}
+                            source={require('@/assets/images/phone-with-barcode.webp')} />
+
+                        <View style={styles.qrScannerTextContainer}>
+                            <Text style={styles.qrScannerText}>Scan your parking buddy QR</Text>
+                            <MaterialCommunityIcons
+                                name="chevron-right"
+                                size={size - 4}
+                                color={COLORS.defaultText}
+                            />
+                        </View>
+                    </View>
+                </Pressable> : null
+            }
         </SafeAreaView>
     );
 }
@@ -113,7 +136,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         justifyContent: 'flex-start',
-        alignItems: 'center',
         padding: SIZES.large
     },
     qrHeader: {
@@ -139,4 +161,33 @@ const styles = StyleSheet.create({
     message: {
         color: COLORS.secondary,
     },
+    qrScannerContainer: {
+        marginTop: SIZES.xLarge * 2,
+    },
+    qrScannerInnerContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-around',
+        shadowOffset: { width: 0, height: 2 },
+        shadowColor: COLORS.defaultText,
+        shadowOpacity: 0.25,
+        shadowRadius: SIZES.small / 3,
+        backgroundColor: COLORS.secondary,
+        elevation: 5,
+        padding: SIZES.large,
+        borderRadius: SIZES.medium / 2,
+        marginTop: SIZES.xSmall,
+    },
+    qrScannerIcon: {
+        width: 36,
+        height: 64,
+    },
+    qrScannerTextContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    qrScannerText: {
+        marginRight: SIZES.small,
+        fontWeight: 'medium',
+    }
 });
