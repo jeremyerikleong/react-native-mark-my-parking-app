@@ -14,6 +14,7 @@ export default function Home() {
     const parkingDataKey = 'parkingData';
     const isFocused = useIsFocused();
     const size = 24;
+    const qrCodeLogo = require('@/assets/images/logo.png');
     const [isQrVisible, setIsQrVisible] = useState(false);
 
     async function loadData() {
@@ -96,7 +97,9 @@ export default function Home() {
                                     backgroundColor={COLORS.secondary}
                                     ecl="L"
                                     quietZone={SIZES.medium}
+                                    logo={qrCodeLogo}
                                     logoSize={40}
+                                    logoBorderRadius={10}
                                     logoBackgroundColor="transparent"
                                 />
 
