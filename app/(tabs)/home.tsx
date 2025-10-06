@@ -1,3 +1,5 @@
+import CameraPermissionUI from '@/components/CameraPermissionUI';
+import { useCameraPermission } from '@/context/CameraPermissionContext';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useIsFocused } from "@react-navigation/native";
 import { Link } from 'expo-router';
@@ -16,6 +18,7 @@ export default function Home() {
     const size = 24;
     const qrCodeLogo = require('@/assets/images/logo.png');
     const [isQrVisible, setIsQrVisible] = useState(false);
+    const { hasPermission, requestPermission } = useCameraPermission();
 
     async function loadData() {
         try {
@@ -36,9 +39,7 @@ export default function Home() {
         }
     }, [isFocused]);
 
-    function shareContact() {
-        console.log('test');
-    }
+    if (!hasPermission) return <CameraPermissionUI />;
 
     return (
         <SafeAreaView style={styles.container}>
@@ -115,7 +116,7 @@ export default function Home() {
 
             {qrValue !== '' ?
                 <Pressable style={styles.qrScannerContainer} onPress={() => shareContact()}>
-                    <Text>Share Contact</Text>
+                    <Text>Share Parking Info</Text>
                     <View style={styles.qrScannerInnerContainer}>
                         <Image style={styles.qrScannerIcon}
                             source={require('@/assets/images/phone-with-barcode.webp')} />
@@ -177,7 +178,7 @@ const styles = StyleSheet.create({
         shadowRadius: SIZES.small / 3,
         backgroundColor: COLORS.secondary,
         elevation: 5,
-        padding: SIZES.large,
+        padding: SIZES.medium,
         borderRadius: SIZES.medium / 2,
         marginTop: SIZES.xSmall,
     },

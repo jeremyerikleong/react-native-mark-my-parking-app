@@ -1,5 +1,7 @@
+import CameraPermissionUI from '@/components/CameraPermissionUI';
+import { useCameraPermission } from '@/context/CameraPermissionContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { CameraType, CameraView, useCameraPermissions } from 'expo-camera';
+import { CameraType, CameraView } from 'expo-camera';
 import { useEffect, useRef, useState } from 'react';
 import { Alert, Image, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,10 +10,10 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { COLORS, SIZES } from '@/constants/theme';
 
 export default function Index() {
+  const { hasPermission, requestPermission } = useCameraPermission();
   const [facing, setFacing] = useState<CameraType>('back');
   const [flashMode, setFlashMode] = useState<'off' | 'on' | 'auto'>('off');
   const [flashModeIndicator, setFlashModeIndicator] = useState<string>('');
-  const [permission, setPermission] = useCameraPermissions();
   const [notes, setNotes] = useState('');
   const [photo, setPhoto] = useState<string>('');
   const [qrValue, setQrValue] = useState<string>('');
@@ -48,24 +50,6 @@ export default function Index() {
     fetchData();
   }, []);
 
-  if (!permission) {
-    return (
-      <View style={styles.permissionContainer}>
-        <Text style={styles.message}>Camera permission is still loading</Text>
-      </View>
-    );
-  }
-
-  if (!permission.granted) {
-    return (
-      <View style={styles.permissionContainer}>
-        <Text style={styles.message}>We need your permission to show the camera</Text>
-        <TouchableOpacity onPress={() => requestingForCameraPermission()} style={styles.btnGrant}>
-          <Text style={styles.btnGrantText}>Grant Permission</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
 
   function toggleCameraFacing() {
     setFacing(current => (current === 'back' ? 'front' : 'back'));
@@ -162,20 +146,7 @@ export default function Index() {
     )
   }
 
-  function requestingForCameraPermission() {
-    Alert.alert(
-      '"App" would like to access your camera',
-      'This allows you to take and share parking photos',
-      [
-        {
-          text: "Don't Allow",
-        },
-        {
-          text: 'Allow',
-          onPress: async () => await setPermission()
-        }
-      ])
-  }
+  if (!hasPermission) return <CameraPermissionUI />;
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
@@ -247,10 +218,6 @@ const styles = StyleSheet.create({
     paddingVertical: SIZES.medium,
     paddingHorizontal: SIZES.xLarge,
     backgroundColor: COLORS.secondary,
-  },
-  message: {
-    textAlign: 'center',
-    paddingBottom: SIZES.xSmall,
   },
   cameraContainer: {
     width: '100%',
@@ -324,18 +291,4 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  permissionContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    textAlign: 'center',
-  },
-  btnGrant: {
-    backgroundColor: COLORS.primary,
-    padding: SIZES.medium,
-    borderRadius: SIZES.small,
-  },
-  btnGrantText: {
-    color: COLORS.secondary,
-  }
 });
