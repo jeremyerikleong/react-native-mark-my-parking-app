@@ -2,7 +2,7 @@ import CameraPermissionUI from '@/components/CameraPermissionUI';
 import { useCameraPermission } from '@/context/CameraPermissionContext';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useIsFocused } from "@react-navigation/native";
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import QRCode from "react-native-qrcode-svg";
@@ -19,6 +19,7 @@ export default function Home() {
     const qrCodeLogo = require('@/assets/images/logo.png');
     const [isQrVisible, setIsQrVisible] = useState(false);
     const { hasPermission, requestPermission } = useCameraPermission();
+    const router = useRouter();
 
     async function loadData() {
         try {
@@ -30,6 +31,14 @@ export default function Home() {
             }
         } catch (err) {
             console.error("Error loading parking data", err);
+        }
+    }
+
+    function shareContact() {
+        if (hasPermission) {
+            router.push('/scanner');
+        } else {
+            return <CameraPermissionUI />
         }
     }
 
@@ -114,24 +123,22 @@ export default function Home() {
                 </Pressable>
             )}
 
-            {qrValue !== '' ?
-                <Pressable style={styles.qrScannerContainer} onPress={() => shareContact()}>
-                    <Text>Share Parking Info</Text>
-                    <View style={styles.qrScannerInnerContainer}>
-                        <Image style={styles.qrScannerIcon}
-                            source={require('@/assets/images/phone-with-barcode.webp')} />
+            <Pressable style={styles.qrScannerContainer} onPress={() => shareContact()}>
+                <Text>Share Parking Info</Text>
+                <View style={styles.qrScannerInnerContainer}>
+                    <Image style={styles.qrScannerIcon}
+                        source={require('@/assets/images/phone-with-barcode.webp')} />
 
-                        <View style={styles.qrScannerTextContainer}>
-                            <Text style={styles.qrScannerText}>Scan your parking buddy QR</Text>
-                            <MaterialCommunityIcons
-                                name="chevron-right"
-                                size={size - 4}
-                                color={COLORS.defaultText}
-                            />
-                        </View>
+                    <View style={styles.qrScannerTextContainer}>
+                        <Text style={styles.qrScannerText}>Scan your parking buddy QR</Text>
+                        <MaterialCommunityIcons
+                            name="chevron-right"
+                            size={size - 4}
+                            color={COLORS.defaultText}
+                        />
                     </View>
-                </Pressable> : null
-            }
+                </View>
+            </Pressable>
         </SafeAreaView>
     );
 }
