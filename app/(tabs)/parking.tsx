@@ -3,7 +3,7 @@ import { useCameraPermission } from '@/context/CameraPermissionContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CameraType, CameraView } from 'expo-camera';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Image, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { Alert, AppState, Image, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -26,20 +26,29 @@ export default function Index() {
   const expiresIn = 24 //hours
 
   useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (nextAppState === 'active') {
+        fetchData();
+      }
+    });
+
     async function fetchData() {
       try {
         const result = await AsyncStorage.getItem(parkingDataKey);
 
         if (result) {
           const data = JSON.parse(result);
-          const currentTimeStamp = Date.now();
+          const currentTimeStamp = data.timestamp ?? 0;
 
-          if (currentTimeStamp - currentTimeStamp < expiresIn * 60 * 60 * 1000) {
+          if (Date.now() - currentTimeStamp < expiresIn * 60 * 60 * 1000) {
             setPhoto(data.photo || '');
             setNotes(data.notes || '');
             setQrValue(JSON.stringify(data));
           } else {
             await AsyncStorage.removeItem(parkingDataKey);
+            setPhoto('');
+            setNotes('');
+            setQrValue('');
           }
         }
       } catch (err) {
@@ -48,6 +57,12 @@ export default function Index() {
     }
 
     fetchData();
+    const intervalId = setInterval(fetchData, 5 * 60 * 1000);
+
+    return () => {
+      subscription.remove();
+      clearInterval(intervalId);
+    };
   }, []);
 
 
