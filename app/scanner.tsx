@@ -2,7 +2,7 @@ import CameraPermissionUI from '@/components/CameraPermissionUI';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Alert, Dimensions, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -14,6 +14,7 @@ const scanBoxSize = screenWidth * 0.7;
 
 export default function Scanner() {
     const [scanned, setScanned] = useState(false);
+    const scannedRef = useRef(false);
     const [permission, requestPermission] = useCameraPermissions();
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const router = useRouter();
@@ -32,9 +33,20 @@ export default function Scanner() {
         setErrorMessage(null);
     }
 
+    async function handleReplaceParkingData(data: any) {
+        try {
+            await AsyncStorage.setItem('parkingData', JSON.stringify(data));
+            router.replace('/(tabs)/parking');
+        } catch (err) {
+            console.error('Error replacing parking data:', err);
+            setErrorMessage('Something went wrong. Please try again.');
+            setScanned(false);
+        }
+    }
+
     async function handleBarcodeScan({ data }: { data: string }) {
-        if (scanned) return;
-        setScanned(true);
+        if (scannedRef.current) return;
+        scannedRef.current = true;
 
         try {
             const result = JSON.parse(data);
@@ -43,33 +55,32 @@ export default function Scanner() {
             setErrorMessage(null);
 
             if (existingData) {
-                return (
-                    Alert.alert(
-                        'Replace Existing Parking Info?',
-                        'You already have parking data. Do you want to replace it?', [
-                        {
-                            text: "Cancel",
-                            style: 'cancel',
-                            onPress: () => {
-                                setScanned(false);
-                                router.push('/(tabs)/home');
-                            }
-                        },
-                        {
-                            text: 'Replace',
-                            onPress: async () => {
-                                await AsyncStorage.setItem('parkingData', JSON.stringify(result));
-                                router.replace('/(tabs)/parking');
-                            }
+                Alert.alert(
+                    'Replace Existing Parking Info?',
+                    'You already have parking data. Do you want to replace it?', [
+                    {
+                        text: "Cancel",
+                        style: 'cancel',
+                        onPress: () => {
+                            setScanned(false);
+                            router.push('/(tabs)/home');
                         }
-                    ])
-                )
+                    },
+                    {
+                        text: 'Replace',
+                        onPress: async () => {
+                            await handleReplaceParkingData(result);
+                        },
+                    }
+                ], {
+                    cancelable: true
+                })
             } else {
                 await AsyncStorage.setItem('parkingData', JSON.stringify(result));
                 router.replace('/(tabs)/parking');
             }
         } catch (err) {
-            // console.error('Invalid QR:', err);
+            console.error('Invalid QR:', err);
             setErrorMessage('Invalid QR code. Please try again.');
             setScanned(false);
         }
@@ -81,7 +92,7 @@ export default function Scanner() {
             edges={['left', 'right']}>
             <CameraView
                 style={styles.camera}
-                onBarcodeScanned={handleBarcodeScan}
+                onBarcodeScanned={scannedRef.current ? undefined : handleBarcodeScan}
                 barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
                 facing="back"
                 enableTorch={isTorchOn}
