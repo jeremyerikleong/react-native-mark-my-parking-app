@@ -51,7 +51,7 @@ export default function Home() {
     if (!hasPermission) return <CameraPermissionUI />;
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['left', 'right']}>
             {qrValue === '' ? (
                 <Link href="/(tabs)/parking" asChild>
                     <Pressable style={styles.messageContainer}>
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
         color: COLORS.secondary,
     },
     qrScannerContainer: {
-        marginTop: SIZES.xLarge * 2,
+        marginTop: SIZES.xLarge,
     },
     qrScannerInnerContainer: {
         flexDirection: 'row',

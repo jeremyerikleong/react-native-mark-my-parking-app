@@ -18,11 +18,17 @@ export default function TabLayout() {
       <Tabs.Screen
         name="home"
         options={{
-          title: "Home",
+          title: "Parking Buddy",
           tabBarLabel: "Home",
           tabBarIcon: ({ color, size }) => (
             <Icon name="home" color={color} size={size} />
           ),
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: COLORS.primary,
+          },
+          headerTintColor: COLORS.secondary,
+          headerTitleAlign: 'center',
         }}
       />
 
