@@ -1,7 +1,11 @@
 import CameraPermissionUI from '@/components/CameraPermissionUI';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { Alert, Dimensions, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import { COLORS, SIZES } from '@/constants/theme';
 
@@ -9,15 +13,89 @@ const screenWidth = Dimensions.get('window').width;
 const scanBoxSize = screenWidth * 0.7;
 
 export default function Scanner() {
+    const [scanned, setScanned] = useState(false);
     const [permission, requestPermission] = useCameraPermissions();
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const router = useRouter();
+    const size = 24;
+    const [isTorchOn, setIsTorchOn] = useState(false);
 
     if (!permission) {
         return <CameraPermissionUI />
     }
 
+    function toggleTorch() {
+        setIsTorchOn(prev => !prev);
+    }
+
+    function clearErrorMessage() {
+        setErrorMessage(null);
+    }
+
+    async function handleBarcodeScan({ data }: { data: string }) {
+        if (scanned) return;
+        setScanned(true);
+
+        try {
+            const result = JSON.parse(data);
+            const existingData = await AsyncStorage.getItem('parkingData');
+
+            setErrorMessage(null);
+
+            if (existingData) {
+                return (
+                    Alert.alert(
+                        'Replace Existing Parking Info?',
+                        'You already have parking data. Do you want to replace it?', [
+                        {
+                            text: "Cancel",
+                            style: 'cancel',
+                            onPress: () => {
+                                setScanned(false);
+                                router.push('/(tabs)/home');
+                            }
+                        },
+                        {
+                            text: 'Replace',
+                            onPress: async () => {
+                                await AsyncStorage.setItem('parkingData', JSON.stringify(result));
+                                router.replace('/(tabs)/parking');
+                            }
+                        }
+                    ])
+                )
+            } else {
+                await AsyncStorage.setItem('parkingData', JSON.stringify(result));
+                router.replace('/(tabs)/parking');
+            }
+        } catch (err) {
+            // console.error('Invalid QR:', err);
+            setErrorMessage('Invalid QR code. Please try again.');
+            setScanned(false);
+        }
+    }
+
     return (
-        <SafeAreaView style={styles.cameraContainer}>
-            <CameraView style={styles.camera} />
+        <SafeAreaView
+            style={styles.cameraContainer}
+            edges={['left', 'right']}>
+            <CameraView
+                style={styles.camera}
+                onBarcodeScanned={handleBarcodeScan}
+                barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+                facing="back"
+                enableTorch={isTorchOn}
+            />
+
+            {errorMessage && (
+                <View style={styles.errorMessageContainer}>
+                    <Text style={styles.errorMessage}>{errorMessage}</Text>
+
+                    <Pressable onPress={clearErrorMessage}>
+                        <Icon name="close" size={size} color={COLORS.secondary} />
+                    </Pressable>
+                </View>)
+            }
 
             <View style={styles.scanBoxContainer}>
                 <View style={styles.scanBoxArea}>
@@ -27,8 +105,16 @@ export default function Scanner() {
                     <View style={[styles.scanBoxCorner, styles.bottomRight]} />
                 </View>
                 <Text style={styles.scanBoxText}>Align QR inside the scan area</Text>
+
+                <TouchableOpacity style={styles.btnTorch} onPress={toggleTorch}>
+                    <Icon
+                        name={!isTorchOn ? "flashlight-off" : "flashlight"}
+                        size={32}
+                        color={!isTorchOn ? COLORS.secondary : COLORS.warning}
+                    />
+                </TouchableOpacity>
             </View>
-        </SafeAreaView>
+        </SafeAreaView >
     )
 }
 
@@ -90,5 +176,25 @@ const styles = StyleSheet.create({
         color: COLORS.secondary,
         fontSize: SIZES.medium,
         marginTop: SIZES.xLarge * 3,
+    },
+    btnTorch: {
+        marginTop: SIZES.xxLarge,
+    },
+    errorMessageContainer: {
+        position: 'absolute',
+        bottom: SIZES.xxLarge * 2,
+        left: SIZES.medium,
+        right: SIZES.medium,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: SIZES.medium,
+        backgroundColor: COLORS.danger,
+        borderRadius: SIZES.xSmall,
+        zIndex: 10,
+    },
+    errorMessage: {
+        color: COLORS.secondary,
+        fontSize: SIZES.medium,
     }
 })
