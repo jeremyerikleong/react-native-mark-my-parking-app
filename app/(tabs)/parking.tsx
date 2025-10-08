@@ -155,7 +155,7 @@ export default function Index() {
         style={styles.container}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
       >
-        <SafeAreaView style={styles.innerContainer}>
+        <SafeAreaView style={styles.innerContainer} edges={['left', 'right', 'bottom']}>
           <View style={styles.cameraContainer}>
             {photo ? (<Image source={{ uri: photo }} style={styles.camera} resizeMode="cover" />)
               : (<CameraView style={styles.camera} facing={facing} flash={flashMode} ref={cameraRef} />)}
@@ -177,7 +177,7 @@ export default function Index() {
               <Icon
                 name={flashMode === "off" ? "flash-off" : flashMode === "on" ? "flash" : flashMode === "auto" ? "flash-auto" : "flash-off"}
                 size={size}
-                color={COLORS.secondary}
+                color={flashMode === 'off' ? COLORS.secondary : COLORS.warning}
               />
             </TouchableOpacity>) : null}
 
