@@ -39,29 +39,20 @@ export default function RootLayout() {
         <CameraPermissionProvider>
             <Stack
                 screenOptions={{
+                    headerShown: false,
                     headerStyle: { backgroundColor: COLORS.primary },
                     headerTintColor: COLORS.secondary,
                     headerTitleAlign: 'center',
                 }}
             >
                 {
-                    hasSeenOnboarding ? (
-                        <Stack.Screen
-                            name="(tabs)"
-                            options={{ headerShown: false }}
-                        />
-                    ) :
-                        <Stack.Screen
-                            name="onboarding"
-                            options={{
-                                headerShown: false
-                            }}
-                        />
+                    hasSeenOnboarding ? <Stack.Screen name="(tabs)" /> : <Stack.Screen name="onboarding" />
                 }
 
                 <Stack.Screen
                     name="scanner"
                     options={() => ({
+                        headerShown: true,
                         title: 'Scan QR Code',
                         headerLeft: () => (
                             <View style={styles.btnBackContainer}>
