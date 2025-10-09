@@ -3,6 +3,8 @@ export const COLORS = {
     secondary: "#ffffff",
     danger: "#be2b2b",
     warning: "#ffc107",
+    activeDot: "#534da4",
+    defaultDot: "#e0e0e044",
     defaultText: "#000000",
     placeholderText: "#a7a7a7",
 };
