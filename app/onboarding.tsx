@@ -93,6 +93,15 @@ export default function OnboardingScreen() {
             onSkip={completeOnboarding}
             dotStyle={styles.defaultDot}
             activeDotStyle={styles.activeDot}
+            renderNextButton={() => (
+                <Text style={[styles.button, { marginRight: SIZES.medium }]}>Next</Text>
+            )}
+            renderSkipButton={() => (
+                <Text style={[styles.button, { marginLeft: SIZES.medium }]}>Skip</Text>
+            )}
+            renderDoneButton={() => (
+                <Text style={[styles.button, { marginRight: SIZES.medium }]}>Done</Text>
+            )}
         />
     );
 }
@@ -136,6 +145,7 @@ const styles = StyleSheet.create({
         height: SIZES.xSmall,
         borderRadius: SIZES.xSmall / 2,
         marginHorizontal: SIZES.small / 3,
+        marginBottom: SIZES.xLarge * 2.25,
     },
     activeDot: {
         backgroundColor: COLORS.activeDot,
@@ -143,6 +153,13 @@ const styles = StyleSheet.create({
         height: SIZES.xSmall,
         borderRadius: SIZES.xSmall / 2,
         marginHorizontal: SIZES.small / 3,
+        marginBottom: SIZES.xLarge * 2.25,
+    },
+    button: {
+        color: COLORS.secondary,
+        fontSize: SIZES.medium,
+        fontWeight: 'bold',
+        bottom: SIZES.medium,
     },
     layoutContainer: {
         flex: 1,
