@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter } from 'expo-router';
-import { Image, StyleSheet, Text } from 'react-native';
+import { Redirect, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Image, StyleSheet, Text, View } from 'react-native';
 import AppIntroSlider from 'react-native-app-intro-slider';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -35,6 +36,8 @@ const slides = [
 
 export default function OnboardingScreen() {
     const router = useRouter();
+    const [isLoading, setIsLoading] = useState(true);
+    const [hasSeenOnboarding, setHasSeenOnboarding] = useState<boolean | null>(null);
 
     async function completeOnboarding() {
         await AsyncStorage.setItem('hasSeenOnboarding', 'true');
@@ -52,6 +55,34 @@ export default function OnboardingScreen() {
             <Text style={styles.text}>{item.text}</Text>
         </SafeAreaView>
     );
+
+    useEffect(() => {
+        async function checkOnboardingFlag() {
+            try {
+                const flag = await AsyncStorage.getItem('hasSeenOnboarding');
+                setHasSeenOnboarding(flag === 'true');
+            } catch (err) {
+                console.error(err);
+                setHasSeenOnboarding(false);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+
+        checkOnboardingFlag();
+    }, []);
+
+    if (isLoading) {
+        return (
+            <View style={styles.layoutContainer}>
+                <ActivityIndicator size="large" color={COLORS.primary} />
+            </View>
+        );
+    }
+
+    if (hasSeenOnboarding) {
+        return <Redirect href="/(tabs)/home" />;
+    }
 
     return (
         <AppIntroSlider
@@ -112,5 +143,10 @@ const styles = StyleSheet.create({
         height: SIZES.xSmall,
         borderRadius: SIZES.xSmall / 2,
         marginHorizontal: SIZES.small / 3,
+    },
+    layoutContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center'
     }
 });
