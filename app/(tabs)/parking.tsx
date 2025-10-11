@@ -2,6 +2,7 @@ import CameraPermissionUI from '@/components/CameraPermissionUI';
 import { useCameraPermission } from '@/context/CameraPermissionContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CameraType, CameraView } from 'expo-camera';
+import * as Notifications from 'expo-notifications';
 import { useEffect, useRef, useState } from 'react';
 import { Alert, AppState, Image, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -113,6 +114,7 @@ export default function Index() {
         }
         await AsyncStorage.setItem(parkingDataKey, JSON.stringify(storedParkingData));
         setQrValue(JSON.stringify(storedParkingData));
+        await scheduleExpiryNotification();
       } catch (err) {
         console.error('Capture error:', err);
       }
@@ -124,6 +126,7 @@ export default function Index() {
     setNotes('');
     setQrValue('');
     await AsyncStorage.removeItem(parkingDataKey);
+    await Notifications.cancelAllScheduledNotificationsAsync();
   }
 
   async function addNote(text: string) {
@@ -137,6 +140,7 @@ export default function Index() {
       };
       await AsyncStorage.setItem(parkingDataKey, JSON.stringify(storedParkingData));
       setQrValue(JSON.stringify(storedParkingData));
+      await scheduleExpiryNotification();
     } catch (err) {
       console.error('Save notes error', err);
     }
@@ -159,6 +163,25 @@ export default function Index() {
       ],
       { cancelable: true }
     )
+  }
+
+  async function scheduleExpiryNotification() {
+    await Notifications.cancelAllScheduledNotificationsAsync();
+
+
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: 'Reminder',
+        body: 'Your parking photo and notes will be deleted soon!',
+        sound: true,
+      },
+      // @ts-expect-error TypeScript typing bug workaround
+      trigger: {
+        type: 'timeInterval',
+        seconds: 23.5 * 60 * 60,
+        repeats: false,
+      },
+    });
   }
 
   if (!hasPermission) return <CameraPermissionUI />;
